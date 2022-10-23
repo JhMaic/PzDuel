@@ -5,9 +5,12 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "strict": true,
+    "noImplicitOverride": true,
+    "experimentalDecorators": true,
+    "declarationMap": true
   },
-
   "references": [
     {
       "path": "./tsconfig.config.json"
