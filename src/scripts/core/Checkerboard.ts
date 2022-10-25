@@ -1,20 +1,20 @@
-import type {Movement, Piece, Report} from "@/scripts/types/content";
+import type {GameContext, Movement, Piece, Report} from "@/scripts/types/content";
 import {Action, Camp, Orientation, Unit} from "@/scripts/types/content";
 
 export class Checkerboard {
     private _field: Piece[][];
-    private _field_size: { row: number, col: number };
     /** self: P1; ob: P2*/
     private _global_report: Report;
+    private _game_context: GameContext;
 
-
-    constructor(row: number, col: number) {
+    constructor(gameContext: GameContext) {
+        const {ROW: row, COL: col} = gameContext;
+        this._game_context = gameContext;
         let field = [];
         for (let i = 0; i < row; i++) {
             field[i] = new Array<Piece>(col);
         }
         this._field = field;
-        this._field_size = {row, col};
         this._global_report = {
             self: {
                 position: {_x: 0, _y: 0},
@@ -31,7 +31,7 @@ export class Checkerboard {
     }
 
     update(from: Camp,
-           movement: Movement) {
+           movement: Movement): Report {
         this.globalStateUpdate();
         const token = from == Camp.P1 ? "self" : "ob";
         let selfReport = this._global_report[token];
@@ -42,20 +42,20 @@ export class Checkerboard {
                 let new_loc = selfReport.position;
                 switch (movement.move.direction) {
                     case Orientation.DOWN:
-                        new_loc._y += new_loc._y == this._field_size.col - 1 ?
-                            0 : movement.move.step || 1;
+                        new_loc._y += new_loc._y == this._game_context.COL - 1 ?
+                            0 : movement.move.step || this._game_context.MOVING_STEP;
                         break;
                     case Orientation.UP:
                         new_loc._y -= new_loc._y == 0 ?
-                            0 : movement.move.step || 1;
+                            0 : movement.move.step || this._game_context.MOVING_STEP;
                         break;
                     case Orientation.RIGHT:
-                        new_loc._x += new_loc._x == this._field_size.row - 1 ?
-                            0 : movement.move.step || 1;
+                        new_loc._x += new_loc._x == this._game_context.ROW - 1 ?
+                            0 : movement.move.step || this._game_context.MOVING_STEP;
                         break;
                     case Orientation.LEFT:
                         new_loc._x -= new_loc._x == 0 ?
-                            0 : movement.move.step || 1;
+                            0 : movement.move.step || this._game_context.MOVING_STEP;
                         break;
                 }
                 if (old_loc != new_loc) {
@@ -75,18 +75,41 @@ export class Checkerboard {
                 let bullet = movement.attack;
                 /**initialize bullet position */
                 bullet.position = {...selfReport.position};
+                const bulletSpeed = bullet.speed || this._game_context.BULLET_SPEED;
                 switch (bullet.direction) {
                     case Orientation.DOWN:
-
+                        bullet.position._y -= bulletSpeed;
+                        break;
+                    case Orientation.LEFT:
+                        bullet.position._x -= bulletSpeed;
+                        break;
+                    case Orientation.UP:
+                        bullet.position._y += bulletSpeed;
+                        break;
+                    case Orientation.RIGHT:
+                        bullet.position._x += bulletSpeed;
+                        break;
                 }
+
+                if ((bullet.position._x < 0 || bullet.position._x > this._game_context.COL) ||
+                    (bullet.position._y < 0 || bullet.position._y > this._game_context.ROW))
+                    break;
+                selfReport.bullets.push(bullet);
+
+                let pieceTarget = this._field[bullet.position._x][bullet.position._y];
+                if (pieceTarget.bulletOver)
+                    pieceTarget.bulletOver.push(bullet);
+                else
+                    pieceTarget.bulletOver = [bullet];
                 break;
         }
         selfReport.lastMovement = movement;
         this._global_report[token] = selfReport;
-    }
-
-    parseReport(of: Camp): Report {
-        return this._global_report;
+        return from === Camp.P1 ? this._global_report : {
+            self: this._global_report.ob,
+            ob: this._global_report.self,
+            details: this._global_report.details
+        };
     }
 
     /**

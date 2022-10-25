@@ -26,6 +26,7 @@ export enum Orientation {
 }
 
 export type Position = {
+    /** between [0, ~-1] */
     _x: number;
     _y: number
 }
@@ -35,7 +36,7 @@ export type Agent = {
     destination: Position;
     how: "LINEAR" | "SQUARE";
     commands?: {
-        when: ((report: Report, context: GameContext) => boolean)[];
+        when: ((report: Readonly<Report>, context: Readonly<GameContext>) => boolean)[];
         doing: Movement | Agent | Agent[];
     }[];
 }
@@ -72,13 +73,15 @@ export interface Commander {
         badge: URL;
         description: string;
     }
-    start: (context: GameContext) => Movement | Agent | Agent[];
-    move: (report: Report, context: GameContext) => Movement | Agent | Agent[];
+    start: (context: Readonly<GameContext>) => Movement | Agent | Agent[];
+    move: (report: Readonly<Report>, context: Readonly<GameContext>) => Movement | Agent | Agent[];
 }
 
 export type GameContext = {
-    col: number;
-    row: number;
+    readonly COL: number;
+    readonly ROW: number;
+    readonly MOVING_STEP: number;
+    readonly BULLET_SPEED: number;
     spared_rounds: number;
 }
 
