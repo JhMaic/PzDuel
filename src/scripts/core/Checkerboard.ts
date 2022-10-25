@@ -71,11 +71,21 @@ export class Checkerboard {
                     };
                 }
                 break;
+            case Action.ATTACK:
+                let bullet = movement.attack;
+                /**initialize bullet position */
+                bullet.position = {...selfReport.position};
+                switch (bullet.direction) {
+                    case Orientation.DOWN:
+
+                }
+                break;
         }
         selfReport.lastMovement = movement;
+        this._global_report[token] = selfReport;
     }
 
-    parseReport(of: "P1" | "P2"): Report {
+    parseReport(of: Camp): Report {
         return this._global_report;
     }
 

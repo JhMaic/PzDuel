@@ -15,7 +15,7 @@ export enum Unit {
 export type Piece = {
     camp: Camp;
     unit: Unit.EMPTY | Unit.PANZER;
-    bullets?: Bullet[];
+    bulletOver?: Bullet[];
 }
 
 export enum Orientation {
@@ -60,9 +60,8 @@ export enum Action {
 }
 
 export type Bullet = {
-    from: Commander;
-    position: Position;
     direction: Orientation;
+    position?: Position;
     speed?: number;
 }
 
