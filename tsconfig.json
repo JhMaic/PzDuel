@@ -1,19 +1,26 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.web.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
+    "sourceMap": true,
+    "target": "ESNext",
+    "module": "ESNext",
+
+    // Rules for code
     "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
-    "experimentalDecorators": true,
-    "declarationMap": true
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+
+    // Settings for linking source files
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true
   },
-  "references": [
-    {
-      "path": "./tsconfig.config.json"
-    }
-  ]
+  "include": ["src"]
 }
