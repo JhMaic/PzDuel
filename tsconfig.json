@@ -6,6 +6,7 @@
     "sourceMap": true,
     "target": "ESNext",
     "module": "ESNext",
+    "declarationMap": true,
     // Rules for code
     "strict": true,
     "noImplicitAny": true,
