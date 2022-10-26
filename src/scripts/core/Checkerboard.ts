@@ -1,5 +1,5 @@
-import type {GameContext, Movement, Piece, Report} from "@/scripts/types/content";
-import {Action, Camp, Orientation, Unit} from "@/scripts/types/content";
+import type {Bullet, GameContext, GameOverState, Movement, Piece, Position, Report} from "@/scripts/types/content";
+import {Action, Camp, GameOverOpt, Orientation, Unit} from "@/scripts/types/content";
 
 export class Checkerboard {
     private _field: Piece[][];
@@ -32,7 +32,6 @@ export class Checkerboard {
 
     update(from: Camp,
            movement: Movement): Report {
-        this.globalStateUpdate();
         const token = from == Camp.P1 ? "self" : "ob";
         let selfReport = this._global_report[token];
 
@@ -102,6 +101,9 @@ export class Checkerboard {
                 else
                     pieceTarget.bulletOver = [bullet];
                 break;
+
+            case Action.STANDBY:
+                break;
         }
         selfReport.lastMovement = movement;
         this._global_report[token] = selfReport;
@@ -116,11 +118,48 @@ export class Checkerboard {
      * Update bullets moving, attacked report, etc.
      * Always running before update()
      * @return whetherEndsGame
-     * Game over if return true
+     *
      *
      */
-    private globalStateUpdate(): boolean {
-        return false;
+    private globalStateUpdate(): GameOverState | undefined {
+        // check rounds time
+        if (!this._game_context.spared_rounds) {
+            return {
+                winner: this.coverRateChecker(),
+                state: {
+                    cause: GameOverOpt.TIMEOUT,
+                    description: "owning more spaces!"
+                }
+            }
+        }
+        // check collision
+        if (this._global_report.self.position == this._global_report.ob.position) {
+            return {
+                winner: this.coverRateChecker(),
+                state: {
+                    cause: GameOverOpt.COLLIDED,
+                    description: "owning more spaces!"
+                }
+            }
+        }
+        // check bullet
+
+    }
+
+    /**
+     * compute cover rate (holding rate)
+     * @private
+     */
+    private coverRateChecker(): Camp {
+        const cr_p1 = this._global_report.self.holding.length;
+        const cr_p2 = this._global_report.ob.holding.length;
+        if (cr_p1 < cr_p2) return Camp.P2;
+        else if (cr_p1 == cr_p2) return Camp.NONE;
+        else return Camp.P1;
+    }
+
+    private bulletHitChecker(bullets: Bullet[], enemy: { loc: Position }) {
+        
     }
 
 }

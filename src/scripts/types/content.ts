@@ -103,3 +103,17 @@ export type Report = {
     };
     details: Piece[][]
 }
+
+export type GameOverState = {
+    winner: Camp;
+    state: {
+        cause: GameOverOpt;
+        description?: string;
+    }
+}
+
+export enum GameOverOpt {
+    ATTACKED, /** attacked by bullet */
+    COLLIDED, /** collided each other, [cover rate]*/
+    TIMEOUT, /** timeout, [cover rate] */
+}
