@@ -1,5 +1,5 @@
-import type {Commander, GameContext} from "@/scripts/core/types";
-import {Panzer} from "@/scripts/core/Panzer";
+import type {Commander, GameContext} from "@/scripts/core/index";
+import {Panzer} from "@/scripts/core/panzer";
 
 export class GameInstance {
     static instance: GameInstance

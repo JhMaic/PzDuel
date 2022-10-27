@@ -1,15 +1,28 @@
-import type {GameContext, Movement, Piece, Report} from "@/scripts/core/types";
-import {Action, Camp, Orientation, Unit} from "@/scripts/core/types";
+import {
+    ACTION,
+    Bullet,
+    BulletHitInfo,
+    CAMP,
+    GAME_OVER_FLAG,
+    GameContext,
+    GameOverState,
+    Movement,
+    ORIENTATION,
+    Piece,
+    Position,
+    Report,
+    UNIT
+} from "@/scripts/core/index";
+
+import("@/scripts/core/index")
 
 export class Checkerboard {
     private _field: Piece[][];
     /** self: P1; ob: P2*/
     private _global_report: Report;
-    private _game_context: GameContext;
 
-    constructor(gameContext: GameContext) {
-        const {ROW: row, COL: col} = gameContext;
-        this._game_context = gameContext;
+    constructor(public _game_context: GameContext) {
+        const {ROW: row, COL: col} = _game_context;
         let field = [];
         for (let i = 0; i < row; i++) {
             field[i] = new Array<Piece>(col);
@@ -30,30 +43,29 @@ export class Checkerboard {
         };
     }
 
-    update(from: Camp,
+    update(from: CAMP,
            movement: Movement): Report {
-        this.globalStateUpdate();
-        const token = from == Camp.P1 ? "self" : "ob";
+        const token = from == CAMP.P1 ? "self" : "ob";
         let selfReport = this._global_report[token];
 
         switch (movement.action) {
-            case Action.MOVE:
+            case ACTION.MOVE:
                 const old_loc = {...selfReport.position};
                 let new_loc = selfReport.position;
                 switch (movement.move.direction) {
-                    case Orientation.DOWN:
+                    case ORIENTATION.DOWN:
                         new_loc._y += new_loc._y == this._game_context.COL - 1 ?
                             0 : movement.move.step || this._game_context.MOVING_STEP;
                         break;
-                    case Orientation.UP:
+                    case ORIENTATION.UP:
                         new_loc._y -= new_loc._y == 0 ?
                             0 : movement.move.step || this._game_context.MOVING_STEP;
                         break;
-                    case Orientation.RIGHT:
+                    case ORIENTATION.RIGHT:
                         new_loc._x += new_loc._x == this._game_context.ROW - 1 ?
                             0 : movement.move.step || this._game_context.MOVING_STEP;
                         break;
-                    case Orientation.LEFT:
+                    case ORIENTATION.LEFT:
                         new_loc._x -= new_loc._x == 0 ?
                             0 : movement.move.step || this._game_context.MOVING_STEP;
                         break;
@@ -63,30 +75,30 @@ export class Checkerboard {
                     selfReport.holding.push(new_loc);
                     this._field[new_loc._x][new_loc._y] = {
                         camp: from,
-                        unit: Unit.PANZER,
+                        unit: UNIT.PANZER,
                     };
                     this._field[old_loc._x][old_loc._y] = {
                         camp: from,
-                        unit: Unit.EMPTY,
+                        unit: UNIT.EMPTY,
                     };
                 }
                 break;
-            case Action.ATTACK:
+            case ACTION.ATTACK:
                 let bullet = movement.attack;
                 /**initialize bullet position */
                 bullet.position = {...selfReport.position};
                 const bulletSpeed = bullet.speed || this._game_context.BULLET_SPEED;
                 switch (bullet.direction) {
-                    case Orientation.DOWN:
+                    case ORIENTATION.DOWN:
                         bullet.position._y -= bulletSpeed;
                         break;
-                    case Orientation.LEFT:
+                    case ORIENTATION.LEFT:
                         bullet.position._x -= bulletSpeed;
                         break;
-                    case Orientation.UP:
+                    case ORIENTATION.UP:
                         bullet.position._y += bulletSpeed;
                         break;
-                    case Orientation.RIGHT:
+                    case ORIENTATION.RIGHT:
                         bullet.position._x += bulletSpeed;
                         break;
                 }
@@ -102,10 +114,12 @@ export class Checkerboard {
                 else
                     pieceTarget.bulletOver = [bullet];
                 break;
+            case ACTION.STANDBY:
+                break;
         }
         selfReport.lastMovement = movement;
         this._global_report[token] = selfReport;
-        return from === Camp.P1 ? this._global_report : {
+        return from === CAMP.P1 ? this._global_report : {
             self: this._global_report.ob,
             ob: this._global_report.self,
             details: this._global_report.details
@@ -119,8 +133,60 @@ export class Checkerboard {
      * Game over if return true
      *
      */
-    private globalStateUpdate(): boolean {
-        return false;
+    private globalStateUpdate(): GameOverState | undefined {
+        // check rounds time
+        if (!this._game_context.spared_rounds) {
+            return {
+                winner: this.coverRateChecker(),
+                state: {
+                    cause: GAME_OVER_FLAG.TIMEOUT,
+                    description: "owning more spaces!"
+                }
+            }
+        }
+        // check collision
+        if (this._global_report.self.position == this._global_report.ob.position) {
+            return {
+                winner: this.coverRateChecker(),
+                state: {
+                    cause: GAME_OVER_FLAG.COLLIDED,
+                    description: "owning more spaces!"
+                }
+            }
+        }
+        // check bullet
+        return;
+    }
+
+    /**
+     * compute cover rate (holding rate)
+     * @private
+     */
+    private coverRateChecker(): CAMP {
+        const cr_p1 = this._global_report.self.holding.length;
+        const cr_p2 = this._global_report.ob.holding.length;
+        if (cr_p1 < cr_p2) return CAMP.P2;
+        else if (cr_p1 == cr_p2) return CAMP.NONE;
+        else return CAMP.P1;
+    }
+
+    /**
+     * SHOULD running before update
+     * @param bullets
+     * @param enemy
+     * @private
+     */
+    private bulletHitChecker(bullets: Bullet[], enemy: { loc: Position }): BulletHitInfo | undefined {
+        let bullet_distance = new Array<{ distance: number, bullet: Bullet }>();
+        for (const bullet of bullets) {
+            const hitDistances = {
+                _x: enemy.loc._x - bullet.position._x,
+                _y: enemy.loc._y - bullet.position._y
+            };
+            
+        }
+
+        return;
     }
 
 }
