@@ -134,7 +134,7 @@ export class Checkerboard {
      *
      */
     private globalStateUpdate(): GameOverState | undefined {
-        // check rounds time
+        // TODO: check remaining rounds time
         if (!this._game_context.spared_rounds) {
             return {
                 winner: this.coverRateChecker(),
@@ -144,7 +144,7 @@ export class Checkerboard {
                 }
             }
         }
-        // check collision
+        // TODO: check if collision
         if (this._global_report.self.position == this._global_report.ob.position) {
             return {
                 winner: this.coverRateChecker(),
@@ -154,8 +154,41 @@ export class Checkerboard {
                 }
             }
         }
-        // check bullet
-        return;
+        // TODO: check bullet attack
+        const p1_hit_state = this.bulletHitChecker(
+            this._global_report.ob.bullets,
+            this._global_report.self)
+        const p2_hit_state = this.bulletHitChecker(
+            this._global_report.self.bullets,
+            this._global_report.ob)
+
+        // TODO: find who will be the first hit
+        const report = {
+            winner: CAMP.NONE,
+            state: {
+                cause: GAME_OVER_FLAG.ATTACKED,
+            }
+
+        }
+        if (p1_hit_state.timeCost > p2_hit_state.timeCost &&
+            p2_hit_state.timeCost < this._game_context.BULLET_SPEED) {
+            // p2 was attacked
+            report.winner = CAMP.P1;
+        } else if (p1_hit_state.timeCost < p2_hit_state.timeCost &&
+            p1_hit_state.timeCost < this._game_context.BULLET_SPEED) {
+            // p1 was attacked
+            report.winner = CAMP.P2
+        } else if (p1_hit_state.timeCost === p2_hit_state.timeCost &&
+            p1_hit_state.timeCost < this._game_context.BULLET_SPEED) {
+            // Both were attacked meanwhile
+            // Skip since set by default
+        } else {
+            // nobody wins
+            return;
+        }
+        return report;
+
+
     }
 
     /**
@@ -176,17 +209,19 @@ export class Checkerboard {
      * @param enemy
      * @private
      */
-    private bulletHitChecker(bullets: Bullet[], enemy: { loc: Position }): BulletHitInfo | undefined {
-        let bullet_distance = new Array<{ distance: number, bullet: Bullet }>();
+    private bulletHitChecker(bullets: Bullet[], enemy: { position: Position }): BulletHitInfo {
+        let closest_bullet: { timeCost: number, bullet?: Bullet } = {timeCost: 999};
         for (const bullet of bullets) {
             const hitDistances = {
-                _x: enemy.loc._x - bullet.position._x,
-                _y: enemy.loc._y - bullet.position._y
+                _x: enemy.position._x - bullet.position._x,
+                _y: enemy.position._y - bullet.position._y
             };
-            
+            if (hitDistances._x === 0 && hitDistances._y > 0 && hitDistances._y < closest_bullet.timeCost)
+                closest_bullet = {timeCost: hitDistances._y, bullet};
+            else if (hitDistances._y === 0 && hitDistances._x > 0 && hitDistances._x < closest_bullet.timeCost)
+                closest_bullet = {timeCost: hitDistances._x, bullet};
+
         }
-
-        return;
+        return closest_bullet as BulletHitInfo;
     }
-
 }
