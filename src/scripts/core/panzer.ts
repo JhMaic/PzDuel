@@ -8,6 +8,7 @@ export class Panzer implements Commander {
     }
 
     fn() {
+        let a = 13;
 
     }
 
