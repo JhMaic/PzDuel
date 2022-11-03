@@ -4,6 +4,7 @@ export class Panzer implements Commander {
 
     constructor(commander: Commander,
                 camp: CAMP) {
+        commander = undefined;
     }
 
 }
