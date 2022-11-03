@@ -6,6 +6,7 @@ export class Panzer implements Commander {
                 camp: CAMP) {
         commander = undefined;
         camp = undefined;
+        let feature = 'feature';
     }
 
     fn() {
