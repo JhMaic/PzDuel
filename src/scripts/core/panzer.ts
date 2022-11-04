@@ -6,4 +6,8 @@ export class Panzer implements Commander {
                 camp: CAMP) {
     }
 
+    fn(f: string) {
+        console.log(f);
+    }
+
 }
