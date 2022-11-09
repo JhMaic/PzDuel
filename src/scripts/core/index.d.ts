@@ -50,7 +50,7 @@ export declare interface Commander {
         name: string;
         badge: URL;
         description: string;
-    }
+    };
     start: (context: Readonly<GameContext>) => Movement | Agent | Agent[];
     move: (report: Readonly<Report>, context: Readonly<GameContext>) => Movement | Agent | Agent[];
 }

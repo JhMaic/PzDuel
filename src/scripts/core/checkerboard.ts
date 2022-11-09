@@ -14,8 +14,6 @@ import {
     UNIT
 } from "@/scripts/core/index";
 
-import("@/scripts/core/index")
-
 export class Checkerboard {
     private _field: Piece[][];
     /** self: P1; ob: P2*/
@@ -142,7 +140,7 @@ export class Checkerboard {
                     cause: GAME_OVER_FLAG.TIMEOUT,
                     description: "owning more spaces!"
                 }
-            }
+            };
         }
         // TODO: check if collision
         if (this._global_report.self.position == this._global_report.ob.position) {
@@ -152,15 +150,15 @@ export class Checkerboard {
                     cause: GAME_OVER_FLAG.COLLIDED,
                     description: "owning more spaces!"
                 }
-            }
+            };
         }
         // TODO: check bullet attack
         const p1_hit_state = this.bulletHitChecker(
             this._global_report.ob.bullets,
-            this._global_report.self)
+            this._global_report.self);
         const p2_hit_state = this.bulletHitChecker(
             this._global_report.self.bullets,
-            this._global_report.ob)
+            this._global_report.ob);
 
         // TODO: find who will be the first hit
         const report = {
@@ -168,8 +166,7 @@ export class Checkerboard {
             state: {
                 cause: GAME_OVER_FLAG.ATTACKED,
             }
-
-        }
+        } as GameOverState;
         if (p1_hit_state.timeCost > p2_hit_state.timeCost &&
             p2_hit_state.timeCost < this._game_context.BULLET_SPEED) {
             // p2 was attacked
@@ -177,7 +174,7 @@ export class Checkerboard {
         } else if (p1_hit_state.timeCost < p2_hit_state.timeCost &&
             p1_hit_state.timeCost < this._game_context.BULLET_SPEED) {
             // p1 was attacked
-            report.winner = CAMP.P2
+            report.winner = CAMP.P2;
         } else if (p1_hit_state.timeCost === p2_hit_state.timeCost &&
             p1_hit_state.timeCost < this._game_context.BULLET_SPEED) {
             // Both were attacked meanwhile
@@ -187,13 +184,12 @@ export class Checkerboard {
             return;
         }
         return report;
-
-
     }
 
     /**
      * compute cover rate (holding rate)
      * @private
+     * @return {CAMP} winner
      */
     private coverRateChecker(): CAMP {
         const cr_p1 = this._global_report.self.holding.length;
